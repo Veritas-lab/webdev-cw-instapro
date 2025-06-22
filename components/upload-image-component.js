@@ -1,5 +1,3 @@
-import { renderUploadImageComponent } from "./upload-image-component.js"
-
 export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
     let imageUrl = ""
 
@@ -29,6 +27,7 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
         const uploadImageContainer = appEl.querySelector(
             ".upload-image-container",
         )
+        // eslint-disable-next-line no-undef
         renderUploadImageComponent({
             element: uploadImageContainer,
             onImageUrlChange(newImageUrl) {

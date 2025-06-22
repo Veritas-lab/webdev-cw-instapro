@@ -1,5 +1,5 @@
-import { getPosts } from "./api.js"
 import { renderAddPostPageComponent } from "./components/add-post-page-component.js"
+import { renderUserPostsPageComponent } from "./components/user-posts-page-component.js"
 import { renderAuthPageComponent } from "./components/auth-page-component.js"
 import {
     ADD_POSTS_PAGE,
@@ -50,13 +50,14 @@ export const goToPage = (newPage, data) => {
             return renderApp()
         }
 
-        if (newPage === POSTS_PAGE) {
+        if (newPage === USER_POSTS_PAGE) {
             page = LOADING_PAGE
             renderApp()
 
-            return getPosts({ token: getToken() })
+            // eslint-disable-next-line no-undef
+            return getUserPosts({ token: getToken(), userId: data.userId })
                 .then((newPosts) => {
-                    page = POSTS_PAGE
+                    page = USER_POSTS_PAGE
                     posts = newPosts
                     renderApp()
                 })
@@ -123,9 +124,9 @@ const renderApp = () => {
     }
 
     if (page === USER_POSTS_PAGE) {
-        // @TODO: реализовать страницу с фотографиями отдельного пользвателя
-        appEl.innerHTML = "Здесь будет страница фотографий пользователя"
-        return
+        return renderUserPostsPageComponent({
+            appEl,
+        })
     }
 }
 

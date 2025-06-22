@@ -53,6 +53,42 @@ export function loginUser({ login, password }) {
     })
 }
 
+export const addPost = ({ description, imageUrl, token }) => {
+    return fetch("https://your-api-url/posts", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+        },
+        body: JSON.stringify({
+            description,
+            imageUrl,
+        }),
+    }).then((response) => {
+        if (!response.ok) {
+            throw new Error("Не удалось добавить пост")
+        }
+        return response.json()
+    })
+}
+
+export const getUserPosts = ({ token, userId }) => {
+    return fetch(`https://wedev-api.sky.pro/api/instagram/posts/${userId}`, {
+        headers: {
+            Authorization: token,
+        },
+    })
+        .then((response) => {
+            if (response.status === 401) {
+                throw new Error("Ошибка авторизации")
+            }
+            return response.json()
+        })
+        .then((data) => {
+            return data.posts
+        })
+}
+
 // Загружает картинку в облако, возвращает url загруженной картинки
 export function uploadImage({ file }) {
     const data = new FormData()
