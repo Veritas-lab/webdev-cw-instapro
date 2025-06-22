@@ -1,61 +1,54 @@
-export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
-    let imageUrl = ""
-
-    const render = () => {
-        const appHtml = `
-    <div class="page-container">
-      <div class="header-container"></div>
-      <div class="form">
-        <h2>Добавить пост</h2>
-        <div class="form-inputs">
-          <textarea 
-            id="post-description" 
-            class="textarea" 
-            placeholder="Описание поста..." 
-            rows="4"
-          ></textarea>
-          
-          <div class="upload-image-container"></div>
+/**
+ * Компонент для загрузки изображений
+ * @param {Object} params - Параметры компонента
+ * @param {HTMLElement} params.element - Элемент для рендеринга компонента
+ * @param {Function} params.onImageUrlChange - Колбэк при успешной загрузке изображения
+ * @param {Function} [params.onUploadError] - Колбэк при ошибке загрузки
+ */
+export function renderUploadImageComponent({
+    element,
+    onImageUrlChange,
+    onUploadError,
+}) {
+    element.innerHTML = `
+        <div class="upload-image">
+            <label class="upload-label">
+                <input type="file" class="file-input" accept="image/*" style="display: none;">
+                <span class="upload-text">Выберите фото</span>
+            </label>
+            <div class="image-preview"></div>
         </div>
-        <button class="button" id="add-button">Добавить</button>
-      </div>
-    </div>
     `
 
-        appEl.innerHTML = appHtml
+    const fileInput = element.querySelector(".file-input")
+    const uploadText = element.querySelector(".upload-text")
+    const imagePreview = element.querySelector(".image-preview")
 
-        const uploadImageContainer = appEl.querySelector(
-            ".upload-image-container",
-        )
-        // eslint-disable-next-line no-undef
-        renderUploadImageComponent({
-            element: uploadImageContainer,
-            onImageUrlChange(newImageUrl) {
-                imageUrl = newImageUrl
-            },
-        })
+    fileInput.addEventListener("change", async (event) => {
+        const file = event.target.files[0]
+        if (!file) return
 
-        document.getElementById("add-button").addEventListener("click", () => {
-            const description = document
-                .getElementById("post-description")
-                .value.trim()
+        try {
+            uploadText.textContent = "Загрузка..."
 
-            if (!imageUrl) {
-                alert("Пожалуйста, загрузите изображение")
-                return
+            // Создаем временный URL для предпросмотра
+            const imageUrl = URL.createObjectURL(file)
+
+            // Показываем превью
+            imagePreview.innerHTML = `<img src="${imageUrl}" class="preview-image">`
+            uploadText.textContent = file.name
+
+            // Вызываем колбэк с URL изображения
+            if (onImageUrlChange) {
+                onImageUrlChange(imageUrl)
             }
+        } catch (error) {
+            uploadText.textContent = "Ошибка загрузки"
+            imagePreview.innerHTML = ""
 
-            if (!description) {
-                alert("Пожалуйста, введите описание поста")
-                return
+            if (onUploadError) {
+                onUploadError(error.message)
             }
-
-            onAddPostClick({
-                description: description,
-                imageUrl: imageUrl,
-            })
-        })
-    }
-
-    render()
+        }
+    })
 }
