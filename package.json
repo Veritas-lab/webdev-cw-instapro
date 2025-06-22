@@ -19,5 +19,8 @@
   "homepage": "https://github.com/Veritas-lab/webdev-cw-instapro#readme",
   "dependencies": {
     "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3"
   }
 }
