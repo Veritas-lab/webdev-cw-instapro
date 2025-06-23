@@ -130,18 +130,21 @@ export function loginUser({ login, password }) {
     })
 }
 
-// Загрузка изображения
 export function uploadImage({ file }) {
     const data = new FormData()
     data.append("file", file)
 
-    return fetch("https://wedev-api.sky.pro/api/upload", {
+    return fetch(`${baseHost}/upload/image`, {
         method: "POST",
         body: data,
-    }).then((response) => {
-        if (!response.ok) {
-            throw new Error("Не удалось загрузить изображение")
-        }
-        return response.json()
     })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Ошибка загрузки изображения")
+            }
+            return response.json()
+        })
+        .then((data) => {
+            return { fileUrl: data.fileUrl }
+        })
 }

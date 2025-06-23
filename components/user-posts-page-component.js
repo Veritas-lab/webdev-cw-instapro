@@ -3,7 +3,6 @@ import { renderHeaderComponent } from "./header-component.js"
 import { posts, goToPage } from "../index.js"
 
 export function renderUserPostsPageComponent({ appEl }) {
-    // Проверка на загрузку данных
     if (!posts) {
         appEl.innerHTML = `
             <div class="page-container">
@@ -17,7 +16,6 @@ export function renderUserPostsPageComponent({ appEl }) {
         return
     }
 
-    // Если постов нет
     if (posts.length === 0) {
         appEl.innerHTML = `
             <div class="page-container">
@@ -31,7 +29,6 @@ export function renderUserPostsPageComponent({ appEl }) {
         return
     }
 
-    // Получаем данные пользователя
     const user = posts[0]?.user
     if (!user) {
         appEl.innerHTML = `
@@ -46,18 +43,26 @@ export function renderUserPostsPageComponent({ appEl }) {
         return
     }
 
-    // Рендеринг постов
     const postsHtml = posts
         .map(
-            () => `
-        <li class="post">
-            <!-- Пост -->
-        </li>
-    `,
+            (post) => `
+            <li class="post">
+                <div class="post-header" data-user-id="${post.user.id}">
+                    <img src="${post.user.imageUrl}" class="post-header__user-image">
+                    <p class="post-header__user-name">${post.user.name}</p>
+                </div>
+                <div class="post-image-container">
+                    <img class="post-image" src="${post.imageUrl}" alt="Пост пользователя ${post.user.name}">
+                </div>
+                <div class="post-footer">
+                    <p class="post-text">${post.description}</p>
+                    <p class="post-date">${new Date(post.createdAt).toLocaleString()}</p>
+                </div>
+            </li>
+        `,
         )
         .join("")
 
-    // Общий HTML
     const appHtml = `
         <div class="page-container">
             <div class="header-container"></div>
@@ -74,8 +79,9 @@ export function renderUserPostsPageComponent({ appEl }) {
         element: document.querySelector(".header-container"),
     })
 
-    // Обработчики событий
-    document.querySelector(".post-header")?.addEventListener("click", () => {
-        goToPage(USER_POSTS_PAGE, { userId: user.id })
+    document.querySelectorAll(".post-header").forEach((header) => {
+        header.addEventListener("click", () => {
+            goToPage(USER_POSTS_PAGE, { userId: header.dataset.userId })
+        })
     })
 }

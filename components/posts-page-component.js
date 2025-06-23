@@ -1,63 +1,75 @@
-import { USER_POSTS_PAGE } from "./routes.js"
+import { USER_POSTS_PAGE } from "../routes.js"
 import { renderHeaderComponent } from "./header-component.js"
 import { posts, goToPage } from "../index.js"
-import { likePost, dislikePost } from "./api.js"
-import { getToken } from "../index.js"
+import { formatDistanceToNow } from "date-fns"
+import { ru } from "date-fns/locale"
 
 export function renderPostsPageComponent({ appEl }) {
     console.log("Актуальный список постов:", posts)
 
+    // Генерируем HTML для каждого поста
     const postsHtml = posts
         .map(
             (post) => `
     <li class="post">
+      <!-- Шапка поста с информацией о пользователе -->
       <div class="post-header" data-user-id="${post.user.id}">
         <img src="${post.user.imageUrl}" class="post-header__user-image">
         <p class="post-header__user-name">${post.user.name}</p>
       </div>
+      
+      <!-- Изображение поста -->
       <div class="post-image-container">
         <img class="post-image" src="${post.imageUrl}">
       </div>
+      
+      <!-- Блок с лайками -->
       <div class="post-likes">
         <button data-post-id="${post.id}" class="like-button">
-          <img src="${
-              post.isLiked
-                  ? "./assets/images/like-active.svg"
-                  : "./assets/images/like-not-active.svg"
-          }">
+          <!-- Меняем иконку лайка в зависимости от того, лайкнул ли пользователь -->
+          <img src="./assets/images/like-${post.isLiked ? "active" : "not-active"}.svg">
         </button>
         <p class="post-likes-text">
           Нравится: <strong>${post.likes.length}</strong>
         </p>
       </div>
+      
+      <!-- Текст поста -->
       <p class="post-text">
         <span class="user-name">${post.user.name}</span>
         ${post.description}
       </p>
+      
+      <!-- Дата поста в относительном формате -->
       <p class="post-date">
-        ${new Date(post.createdAt).toLocaleString()}
+        ${formatDistanceToNow(new Date(post.createdAt), {
+            addSuffix: true, // Добавляем "назад"
+            locale: ru, // Используем русскую локализацию
+        })}
       </p>
     </li>
   `,
         )
-        .join("")
+        .join("") // Объединяем все посты в одну строку
 
+    // Основной HTML контейнер
     const appHtml = `
     <div class="page-container">
       <div class="header-container"></div>
       <ul class="posts">
         ${postsHtml}
       </ul>
-    </div>
-  `
+    </div>`
 
+    // Вставляем сгенерированный HTML в приложение
     appEl.innerHTML = appHtml
 
+    // Рендерим компонент шапки
     renderHeaderComponent({
         element: document.querySelector(".header-container"),
     })
 
-    // Обработка клика на пользователя
+    // Добавляем обработчики клика на аватары пользователей
     for (let userEl of document.querySelectorAll(".post-header")) {
         userEl.addEventListener("click", () => {
             goToPage(USER_POSTS_PAGE, {
@@ -65,42 +77,4 @@ export function renderPostsPageComponent({ appEl }) {
             })
         })
     }
-
-    // Обработка лайков
-    document.querySelector(".posts").addEventListener("click", (event) => {
-        const likeButton = event.target.closest(".like-button")
-        if (!likeButton) return
-
-        const postId = likeButton.dataset.postId
-        const post = posts.find((post) => post.id === postId)
-
-        if (!post) return
-
-        const likeImg = likeButton.querySelector("img")
-        const likesCountEl =
-            likeButton.nextElementSibling.querySelector("strong")
-
-        const promise = post.isLiked
-            ? dislikePost({ token: getToken(), postId })
-            : likePost({ token: getToken(), postId })
-
-        promise
-            .then((updatedPost) => {
-                const postIndex = posts.findIndex((p) => p.id === postId)
-                if (postIndex !== -1) {
-                    posts[postIndex] = updatedPost
-                }
-                likeImg.src = updatedPost.isLiked
-                    ? "./assets/images/like-active.svg"
-                    : "./assets/images/like-not-active.svg"
-                likesCountEl.textContent = updatedPost.likes.length
-            })
-            .catch((error) => {
-                console.error(error)
-                likeImg.src = post.isLiked
-                    ? "./assets/images/like-active.svg"
-                    : "./assets/images/like-not-active.svg"
-                likesCountEl.textContent = post.likes.length
-            })
-    })
 }
