@@ -1,3 +1,5 @@
+import { uploadImage } from "../api.js"
+
 export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
     const render = () => {
         const appHtml = `
@@ -64,28 +66,35 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
             }
         })
 
-        document.getElementById("add-button").addEventListener("click", () => {
-            const description = descriptionInput.value.trim()
+        document
+            .getElementById("add-button")
+            .addEventListener("click", async () => {
+                const description = descriptionInput.value.trim()
 
-            if (!fileInput.files[0]) {
-                alert("Пожалуйста, выберите изображение")
-                return
-            }
+                if (!fileInput.files[0]) {
+                    alert("Пожалуйста, выберите изображение")
+                    return
+                }
 
-            if (!description) {
-                alert("Пожалуйста, введите описание поста")
-                return
-            }
+                if (!description) {
+                    alert("Пожалуйста, введите описание поста")
+                    return
+                }
 
-            const imageUrl = fileInput.files[0]
-                ? URL.createObjectURL(fileInput.files[0])
-                : ""
+                try {
+                    const imageUrl = fileInput.files[0]
+                        ? await uploadImage({ file: fileInput.files[0] })
+                        : ""
 
-            onAddPostClick({
-                description: description,
-                imageUrl: imageUrl,
+                    onAddPostClick({
+                        description: description,
+                        imageUrl: imageUrl,
+                    })
+                } catch (error) {
+                    console.error("Ошибка загрузки изображения:", error)
+                    alert("Не удалось загрузить изображение")
+                }
             })
-        })
     }
 
     render()

@@ -1,8 +1,6 @@
 import { USER_POSTS_PAGE } from "../routes.js"
 import { renderHeaderComponent } from "./header-component.js"
 import { posts, goToPage } from "../index.js"
-import { formatDistanceToNow } from "date-fns"
-import { ru } from "date-fns/locale"
 
 export function renderPostsPageComponent({ appEl }) {
     console.log("Актуальный список постов:", posts)
@@ -15,12 +13,12 @@ export function renderPostsPageComponent({ appEl }) {
       <!-- Шапка поста с информацией о пользователе -->
       <div class="post-header" data-user-id="${post.user.id}">
         <img src="${post.user.imageUrl}" class="post-header__user-image">
-        <p class="post-header__user-name">${post.user.name}</p>
+        <p class="post-header__user-name" onerror="this.src='/default-avatar.png'">${post.user.name}</p>
       </div>
       
       <!-- Изображение поста -->
       <div class="post-image-container">
-        <img class="post-image" src="${post.imageUrl}">
+        <img class="post-image" onerror="this.src='/default-avatar.png'" src="${post.imageUrl}">
       </div>
       
       <!-- Блок с лайками -->
@@ -39,15 +37,6 @@ export function renderPostsPageComponent({ appEl }) {
         <span class="user-name">${post.user.name}</span>
         ${post.description}
       </p>
-      
-      <!-- Дата поста в относительном формате -->
-      <p class="post-date">
-        ${formatDistanceToNow(new Date(post.createdAt), {
-            addSuffix: true, // Добавляем "назад"
-            locale: ru, // Используем русскую локализацию
-        })}
-      </p>
-    </li>
   `,
         )
         .join("") // Объединяем все посты в одну строку

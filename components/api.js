@@ -126,6 +126,7 @@ export function loginUser({ login, password }) {
                 throw new Error(errorData.error || "Неверный логин или пароль")
             })
         }
+
         return response.json()
     })
 }
@@ -134,17 +135,25 @@ export function uploadImage({ file }) {
     const data = new FormData()
     data.append("file", file)
 
+    console.log("Отправка файла на сервер...", file.name) // Логируем имя файла
+
     return fetch(`${baseHost}/upload/image`, {
         method: "POST",
         body: data,
     })
         .then((response) => {
             if (!response.ok) {
+                console.error("Ошибка загрузки:", response.status) // Логируем статус ошибки
                 throw new Error("Ошибка загрузки изображения")
             }
             return response.json()
         })
         .then((data) => {
+            console.log("Сервер вернул URL:", data.fileUrl) // Проверяем ответ сервера
             return { fileUrl: data.fileUrl }
+        })
+        .catch((error) => {
+            console.error("Ошибка в uploadImage:", error) // Ловим все ошибки
+            throw error
         })
 }
