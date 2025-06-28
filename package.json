@@ -4,7 +4,8 @@
     "description": "MVP социальной сети для обмена фотографиями",
     "main": "index.js",
     "scripts": {
-        "dev": "webpack --mode development --watch"
+        "dev": "webpack serve --mode development",
+        "build": "webpack --mode production"
     },
     "repository": {
         "type": "git",

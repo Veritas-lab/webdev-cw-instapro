@@ -1,5 +1,5 @@
-import { goToPage, logout, user } from "../index.js"
-import { ADD_POSTS_PAGE, AUTH_PAGE, POSTS_PAGE } from "./routes.js"
+import { goToPage, logout } from "../index.js"
+import { ADD_POSTS_PAGE, AUTH_PAGE, POSTS_PAGE } from "../routes.js"
 
 /**
  * Компонент заголовка страницы.
@@ -8,7 +8,7 @@ import { ADD_POSTS_PAGE, AUTH_PAGE, POSTS_PAGE } from "./routes.js"
  * @param {HTMLElement} params.element - HTML-элемент, в который будет рендериться заголовок.
  * @returns {HTMLElement} Возвращает элемент заголовка после рендеринга.
  */
-export function renderHeaderComponent({ element }) {
+export function renderHeaderComponent({ element, user }) {
     /**
      * Рендерит содержимое заголовка.
      */
@@ -35,6 +35,7 @@ export function renderHeaderComponent({ element }) {
      * Если пользователь авторизован, перенаправляет на страницу добавления постов.
      * Если пользователь не авторизован, перенаправляет на страницу авторизации.
      */
+
     element
         .querySelector(".add-or-login-button")
         .addEventListener("click", () => {

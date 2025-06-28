@@ -1,4 +1,4 @@
-import { getPosts } from "./api.js"
+import { getPosts, getUserPosts, personalKey } from "./api.js"
 import { renderAddPostPageComponent } from "./components/add-post-page-component.js"
 import { renderAuthPageComponent } from "./components/auth-page-component.js"
 import {
@@ -7,7 +7,7 @@ import {
     LOADING_PAGE,
     POSTS_PAGE,
     USER_POSTS_PAGE,
-} from "./components/routes.js"
+} from "./routes.js"
 import { renderPostsPageComponent } from "./components/posts-page-component.js"
 import { renderLoadingPageComponent } from "./components/loading-page-component.js"
 import {
@@ -15,6 +15,7 @@ import {
     removeUserFromLocalStorage,
     saveUserToLocalStorage,
 } from "./helpers.js"
+// import { error } from "console";
 
 export let user = getUserFromLocalStorage()
 export let page = null
@@ -31,12 +32,16 @@ export const logout = () => {
     goToPage(POSTS_PAGE)
 }
 
+export function updatePosts(newPosts) {
+    posts = newPosts
+}
+
 /**
  * Включает страницу приложения
  */
 export const goToPage = (newPage, data) => {
     if (
-        ![
+        [
             POSTS_PAGE,
             AUTH_PAGE,
             ADD_POSTS_PAGE,
@@ -44,61 +49,53 @@ export const goToPage = (newPage, data) => {
             LOADING_PAGE,
         ].includes(newPage)
     ) {
-        throw new Error("страницы не существует")
-    }
-
-    if (newPage === ADD_POSTS_PAGE) {
-        page = user ? ADD_POSTS_PAGE : AUTH_PAGE
-        renderApp()
-        return
-    }
-
-    if (newPage === POSTS_PAGE) {
-        page = LOADING_PAGE
-        renderApp()
-
-        return getPosts({ token: getToken() })
-            .then((newPosts) => {
-                page = POSTS_PAGE
-                posts = newPosts
-                renderApp()
-            })
-            .catch((error) => {
-                console.error("Ошибка загрузки постов:", error)
-                goToPage(POSTS_PAGE)
-            })
-    }
-
-    if (newPage === USER_POSTS_PAGE) {
-        if (!data?.userId) {
-            console.error("Не указан userId для страницы пользователя")
-            return goToPage(POSTS_PAGE)
+        if (newPage === ADD_POSTS_PAGE) {
+            /* Если пользователь не авторизован, то отправляем его на страницу авторизации перед добавлением поста */
+            page = user ? ADD_POSTS_PAGE : AUTH_PAGE
+            return renderApp()
         }
 
-        page = LOADING_PAGE
-        renderApp()
+        if (newPage === POSTS_PAGE) {
+            page = LOADING_PAGE
+            renderApp()
 
-        return getPosts({
-            token: getToken(),
-            userId: data.userId,
-        })
-            .then((newPosts) => {
-                if (!Array.isArray(newPosts)) {
-                    throw new Error("Некорректный формат полученных постов")
-                }
-                page = USER_POSTS_PAGE
-                posts = newPosts
-                renderApp()
-            })
-            .catch((error) => {
-                console.error("Ошибка загрузки постов пользователя:", error)
-                goToPage(POSTS_PAGE)
-            })
+            return getPosts({ token: getToken() })
+                .then((newPosts) => {
+                    page = POSTS_PAGE
+                    posts = newPosts
+                    renderApp()
+                })
+                .catch((error) => {
+                    console.error(error)
+                    goToPage(POSTS_PAGE)
+                })
+        }
+
+        if (newPage === USER_POSTS_PAGE) {
+            // @@TODO: реализовать получение постов юзера из API(Готово)
+            page = LOADING_PAGE
+            renderApp()
+
+            return getUserPosts({ userId: data.userId, token: getToken() })
+                .then((userPosts) => {
+                    posts = userPosts
+                    page = USER_POSTS_PAGE
+                    renderApp()
+                })
+                .catch((error) => {
+                    console.error(error)
+                    alert("Ошибка загрузки постов пользователя")
+                    goToPage(POSTS_PAGE)
+                })
+        }
     }
 
-    // Для всех остальных страниц (AUTH_PAGE, LOADING_PAGE)
-    page = newPage
-    renderApp()
+    if (newPage === AUTH_PAGE) {
+        page = AUTH_PAGE
+        return renderApp()
+    }
+
+    throw new Error("страницы не существует")
 }
 
 const renderApp = () => {
@@ -127,10 +124,43 @@ const renderApp = () => {
     if (page === ADD_POSTS_PAGE) {
         return renderAddPostPageComponent({
             appEl,
+            user,
             onAddPostClick({ description, imageUrl }) {
-                // @TODO: реализовать добавление поста в API
-                console.log("Добавляю пост...", { description, imageUrl })
-                goToPage(POSTS_PAGE)
+                // @TODO: реализовать добавление поста в API (Готово)
+                if (!description || !imageUrl) {
+                    alert("Описание и изображение обязательны")
+                    return
+                }
+
+                fetch(
+                    `https://wedev-api.sky.pro/api/v1/${personalKey}/instapro`,
+                    {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${user.token}`,
+                        },
+                        body: JSON.stringify({
+                            description,
+                            imageUrl,
+                        }),
+                    },
+                )
+                    .then((response) => {
+                        if (response.status === 400) {
+                            throw new Error("Неверные данные для поста")
+                        }
+                        return response.json()
+                    })
+                    .then(() => {
+                        console.log("Добавляю пост...", {
+                            description,
+                            imageUrl,
+                        })
+                        goToPage(POSTS_PAGE)
+                    })
+                    .catch((error) => {
+                        alert(error.message)
+                    })
             },
         })
     }
@@ -138,13 +168,21 @@ const renderApp = () => {
     if (page === POSTS_PAGE) {
         return renderPostsPageComponent({
             appEl,
+            user,
+            posts,
+            goToPage,
+            updatePosts,
         })
     }
 
     if (page === USER_POSTS_PAGE) {
-        // @TODO: реализовать страницу с фотографиями отдельного пользвателя
-        appEl.innerHTML = "Здесь будет страница фотографий пользователя"
-        return
+        // @TODO: реализовать страницу с фотографиями отдельного пользвателя(Готово)
+        return renderPostsPageComponent({
+            appEl,
+            user,
+            posts,
+            goToPage,
+        })
     }
 }
 

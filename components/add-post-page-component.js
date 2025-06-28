@@ -1,100 +1,50 @@
-import { uploadImage } from "../api.js"
+import { renderHeaderComponent } from "./header-component.js"
+import { renderUploadImageComponent } from "./upload-image-component.js"
 
-export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
+export function renderAddPostPageComponent({ appEl, user, onAddPostClick }) {
+    let imageUrl = ""
+
     const render = () => {
-        const appHtml = `
-    <div class="page-container">
-      <div class="header-container"></div>
-      <div class="form">
+        // @TODO: Реализовать страницу добавления поста(Готово)
+        appEl.innerHTML = `
+      <div class="page-container">
+        <div class="header-container"></div>
         <h2>Добавить пост</h2>
-        <div class="form-inputs">
-          <textarea id="post-description" class="textarea" placeholder="Описание поста..." rows="4"></textarea>
-           <div class="upload-area" id="upload-area">
-            <label for="file-input" class="file-upload-label">
-              <span id="upload-text">Перетащите изображение сюда или кликните для выбора</span>
-              <input type="file" id="file-input" accept="image/*" style="display: none;">
-            </label>
-            <div id="image-preview" class="image-preview"></div>
-          </div>
-        </div>
+        <div class="upload-image-container"></div>
+        <input
+          type="text"
+          id="description-input"
+          placeholder="Добавьте описание"
+          class="description-input"
+        />
         <button class="button" id="add-button">Добавить</button>
       </div>
-    </div>
     `
 
-        appEl.innerHTML = appHtml
+        renderHeaderComponent({
+            element: document.querySelector(".header-container"),
+            user,
+        })
 
-        const fileInput = document.getElementById("file-input")
-        const uploadArea = document.getElementById("upload-area")
-        const imagePreview = document.getElementById("image-preview")
-        const uploadText = document.getElementById("upload-text")
-        const descriptionInput = document.getElementById("post-description")
+        renderUploadImageComponent({
+            element: document.querySelector(".upload-image-container"),
+            onImageUrlChange: (newImageUrl) => {
+                imageUrl = newImageUrl
+            },
+        })
 
-        fileInput.addEventListener("change", (e) => {
-            const file = e.target.files[0]
-            if (file) {
-                const reader = new FileReader()
-                reader.onload = (event) => {
-                    imagePreview.innerHTML = `<img src="${event.target.result}" alt="Preview" class="preview-image">`
-                    uploadText.textContent = "Файл выбран: " + file.name
-                }
-                reader.readAsDataURL(file)
+        document.getElementById("add-button").addEventListener("click", () => {
+            const description = document
+                .getElementById("description-input")
+                .value.trim()
+
+            if (!description || !imageUrl) {
+                alert("Добавьте описание и выберите картинку")
+                return
             }
+
+            onAddPostClick({ description, imageUrl })
         })
-
-        uploadArea.addEventListener("dragover", (e) => {
-            e.preventDefault()
-            uploadArea.classList.add("dragover")
-        })
-
-        uploadArea.addEventListener("dragleave", () => {
-            uploadArea.classList.remove("dragover")
-        })
-
-        uploadArea.addEventListener("drop", (e) => {
-            e.preventDefault()
-            uploadArea.classList.remove("dragover")
-            const file = e.dataTransfer.files[0]
-            if (file && file.type.match("image.*")) {
-                fileInput.files = e.dataTransfer.files
-                const reader = new FileReader()
-                reader.onload = (event) => {
-                    imagePreview.innerHTML = `<img src="${event.target.result}" alt="Preview" class="preview-image">`
-                    uploadText.textContent = "Файл выбран: " + file.name
-                }
-                reader.readAsDataURL(file)
-            }
-        })
-
-        document
-            .getElementById("add-button")
-            .addEventListener("click", async () => {
-                const description = descriptionInput.value.trim()
-
-                if (!fileInput.files[0]) {
-                    alert("Пожалуйста, выберите изображение")
-                    return
-                }
-
-                if (!description) {
-                    alert("Пожалуйста, введите описание поста")
-                    return
-                }
-
-                try {
-                    const imageUrl = fileInput.files[0]
-                        ? await uploadImage({ file: fileInput.files[0] })
-                        : ""
-
-                    onAddPostClick({
-                        description: description,
-                        imageUrl: imageUrl,
-                    })
-                } catch (error) {
-                    console.error("Ошибка загрузки изображения:", error)
-                    alert("Не удалось загрузить изображение")
-                }
-            })
     }
 
     render()
