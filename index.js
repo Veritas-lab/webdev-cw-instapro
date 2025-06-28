@@ -7,7 +7,7 @@ import {
     LOADING_PAGE,
     POSTS_PAGE,
     USER_POSTS_PAGE,
-} from "./routes.js"
+} from "./components/routes.js"
 import { renderPostsPageComponent } from "./components/posts-page-component.js"
 import { renderLoadingPageComponent } from "./components/loading-page-component.js"
 import {
