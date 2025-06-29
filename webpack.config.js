@@ -1,20 +1,7 @@
-const path = require("path")
-
 module.exports = {
-    mode: "development",
-    entry: "./index.js",
+    entry: "./index.js", // Входной файл, где пишем свой код
     output: {
-        filename: "main.js",
-        path: path.resolve(__dirname, "dist"),
-    },
-    resolve: {
-        extensions: [".js"],
-    },
-    devServer: {
-        static: {
-            directory: path.join(__dirname, "dist"),
-        },
-        compress: true,
-        port: 9000,
+        filename: "main.js", // Выходной файл, который подключаем к HTML
+        // Сохранится он по пути "./dist/main.js"
     },
 }

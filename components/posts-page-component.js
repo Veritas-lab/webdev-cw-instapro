@@ -1,9 +1,8 @@
-import { formatDistanceToNow } from "date-fns"
-import { ru } from "date-fns/locale/ru"
+import { formatDistanceToNow } from "date-fns/esm"
+import { ru } from "date-fns/esm/locale/ru"
 import { USER_POSTS_PAGE } from "../routes.js"
 import { renderHeaderComponent } from "./header-component.js"
 import { likePost, unlikePost } from "../api.js"
-import { updatePosts } from "../index.js"
 
 export function renderPostsPageComponent({
     appEl,
