@@ -86,8 +86,10 @@ export function renderPostsPageComponent({
         })
     }
 
+    // В renderPostsPageComponent, изменим обработчик клика на лайк:
     for (const likeButton of document.querySelectorAll(".like-button")) {
-        likeButton.addEventListener("click", () => {
+        likeButton.addEventListener("click", (e) => {
+            e.stopPropagation()
             if (!user) {
                 alert("Авторизуйтесь, чтобы поставить лайк")
                 return
@@ -98,6 +100,13 @@ export function renderPostsPageComponent({
             if (!post) return
 
             const token = `Bearer ${user.token}`
+            const likeIcon = likeButton.querySelector("img")
+
+            // Визуальная обратная связь перед API запросом
+            likeIcon.style.transform = "scale(1.3)"
+            setTimeout(() => {
+                likeIcon.style.transform = "scale(1)"
+            }, 200)
 
             const apiCall = post.isLiked
                 ? unlikePost({ postId, token })
@@ -106,22 +115,32 @@ export function renderPostsPageComponent({
             apiCall
                 .then((updatedPost) => {
                     const newPost = updatedPost.post
-
                     updatePosts(
                         posts.map((p) => (p.id === newPost.id ? newPost : p)),
                     )
 
-                    renderPostsPageComponent({
-                        appEl: document.getElementById("app"),
-                        user,
-                        posts: posts.map((p) =>
-                            p.id === newPost.id ? newPost : p,
-                        ),
-                        goToPage,
-                        updatePosts,
-                    })
+                    // Анимация перехода
+                    likeIcon.style.transition = "all 0.3s ease"
+                    likeIcon.src = newPost.isLiked
+                        ? "./assets/images/like-active.svg"
+                        : "./assets/images/like-not-active.svg"
+
+                    // Небольшая задержка перед обновлением всего компонента
+                    setTimeout(() => {
+                        renderPostsPageComponent({
+                            appEl: document.getElementById("app"),
+                            user,
+                            posts: posts.map((p) =>
+                                p.id === newPost.id ? newPost : p,
+                            ),
+                            goToPage,
+                            updatePosts,
+                        })
+                    }, 300)
                 })
                 .catch((error) => {
+                    console.error(error)
+                    likeIcon.style.transform = "scale(1)"
                     alert(error.message)
                 })
         })

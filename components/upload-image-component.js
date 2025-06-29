@@ -48,9 +48,9 @@ export function renderUploadImageComponent({ element, onImageUrlChange }) {
     `
 
         // Обработчик выбора файла
-        const fileSelectionHandler = element.querySelector(".file-upload-input")
-        fileSelectionHandler?.addEventListener("change", () => {
-            const file = fileSelectionHandler.files[0]
+        const fileInputElement = element.querySelector(".file-upload-input")
+        fileInputElement?.addEventListener("change", () => {
+            const file = fileInputElement.files[0]
             if (file) {
                 const labelEl = document.querySelector(".file-upload-label")
                 labelEl.setAttribute("disabled", true)
